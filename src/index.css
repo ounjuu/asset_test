@@ -7,9 +7,9 @@
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
+  /* 항상 다크 테마 */
   color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  background-color: #000; /* 완전 검정 배경 */
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -19,19 +19,21 @@
 
 a {
   font-weight: 500;
-  color: #646cff;
+  color: #60a5fa; /* Tailwind blue-400 */
   text-decoration: inherit;
 }
 a:hover {
-  color: #535bf2;
+  color: #93c5fd; /* Tailwind blue-300 */
 }
 
 body {
   margin: 0;
   display: flex;
-  place-items: center;
+  flex-direction: column;
   min-width: 320px;
   min-height: 100vh;
+  background-color: #000; /* body도 검정 */
+  color: #fff; /* 흰 글씨 */
 }
 
 h1 {
@@ -41,32 +43,21 @@ h1 {
 
 button {
   border-radius: 8px;
-  border: 1px solid transparent;
+  border: 1px solid #333;
   padding: 0.6em 1.2em;
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
+  background-color: #111;
+  color: #fff;
   cursor: pointer;
-  transition: border-color 0.25s;
+  transition: border-color 0.25s, background-color 0.25s;
 }
 button:hover {
-  border-color: #646cff;
+  border-color: #60a5fa;
+  background-color: #1f2937; /* Tailwind gray-800 */
 }
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
 }
