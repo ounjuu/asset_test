@@ -11,7 +11,7 @@ interface AssetOption {
   label: string;
   value: string;
 }
-// select style
+
 const customStyles = {
   control: (provided: any) => ({
     ...provided,
@@ -25,9 +25,7 @@ const customStyles = {
   }),
   option: (provided: any, state: any) => ({
     ...provided,
-    backgroundColor: state.isFocused
-      ? "#1f2937" /* tailwind gray-800 */
-      : "black",
+    backgroundColor: state.isFocused ? "#1f2937" : "black",
     color: "white",
     cursor: "pointer",
   }),
@@ -37,7 +35,7 @@ const customStyles = {
   }),
   placeholder: (provided: any) => ({
     ...provided,
-    color: "white" /* tailwind gray-400 */,
+    color: "white",
   }),
 };
 
@@ -64,33 +62,23 @@ const DataDisplay: React.FC<Props> = ({ menu }) => {
   const [data, setData] = useState<DataItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [value, setValue] = useState("0");
 
-  // input 숫자 제어
-  const handleChange = (e: any) => {
-    let val = e.target.value;
-    // 빈 문자열 허용 (입력 초기화)
-    if (val === "") {
-      setValue(val);
-      return;
-    }
-    // 숫자만 허용
-    val = Number(val);
-    if (val >= 0 && val <= 100) {
-      setValue(val);
-    }
-  };
-
-  // 여러 자산군 박스 상태 (id별로 category, assetName 선택 관리)
+  // 여기 value를 각 박스마다 개별 관리하도록 변경
+  // (기존 하나의 value는 모든 박스의 비중을 공유하는 문제 있음)
+  // 자산군 박스 구조에 비중도 추가
   const [assetBoxes, setAssetBoxes] = useState<
     {
       id: number;
       selectedCategory: AssetOption | null;
       selectedAssetName: AssetOption | null;
+      weight: string; // 비중을 문자열로 관리 (빈 문자열 가능)
     }[]
   >([]);
 
   const [boxIdCounter, setBoxIdCounter] = useState(0);
+
+  // 준비중 메시지 상태
+  const [readyMessage, setReadyMessage] = useState<string | null>(null);
 
   // 1) 데이터 fetch 및 초기화
   useEffect(() => {
@@ -106,9 +94,14 @@ const DataDisplay: React.FC<Props> = ({ menu }) => {
         const json = (await res.json()) as DataItem[];
         setData(json);
 
-        // 초기 박스 1개 생성
+        // 초기 박스 1개 생성, 비중 초기값 빈 문자열
         setAssetBoxes([
-          { id: 0, selectedCategory: null, selectedAssetName: null },
+          {
+            id: 0,
+            selectedCategory: null,
+            selectedAssetName: null,
+            weight: "",
+          },
         ]);
         setBoxIdCounter(1);
       } catch (e: any) {
@@ -121,7 +114,6 @@ const DataDisplay: React.FC<Props> = ({ menu }) => {
     fetchData();
   }, [menu]);
 
-  // 2) categoryOptions를 useMemo로 메모이제이션
   const categoryOptions: AssetOption[] = useMemo(() => {
     const uniqueCategories = Array.from(
       new Set(data.map((item) => item.category))
@@ -132,12 +124,8 @@ const DataDisplay: React.FC<Props> = ({ menu }) => {
     }));
   }, [data]);
 
-  // 3) getAssetNameOptions도 useMemo로 최적화
   const getAssetNameOptions = useMemo(() => {
-    // 이 함수는 category별 assetName 배열을 캐싱하는 Map을 만듭니다.
     const map = new Map<string, AssetOption[]>();
-
-    // 모든 카테고리별로 미리 assetName 리스트 생성
     categoryOptions.forEach(({ value: category }) => {
       const uniqueAssetNames = Array.from(
         new Set(
@@ -146,7 +134,6 @@ const DataDisplay: React.FC<Props> = ({ menu }) => {
             .map((item) => item.assetName)
         )
       );
-
       map.set(
         category,
         uniqueAssetNames.map((assetName) => ({
@@ -156,7 +143,6 @@ const DataDisplay: React.FC<Props> = ({ menu }) => {
       );
     });
 
-    // category가 주어지면 해당 assetName 리스트 반환하는 함수 리턴
     return (category: string | null): AssetOption[] => {
       if (!category) return [];
       return map.get(category) || [];
@@ -167,7 +153,12 @@ const DataDisplay: React.FC<Props> = ({ menu }) => {
   const handleAddBox = () => {
     setAssetBoxes((prev) => [
       ...prev,
-      { id: boxIdCounter, selectedCategory: null, selectedAssetName: null },
+      {
+        id: boxIdCounter,
+        selectedCategory: null,
+        selectedAssetName: null,
+        weight: "",
+      },
     ]);
     setBoxIdCounter((prev) => prev + 1);
   };
@@ -177,7 +168,7 @@ const DataDisplay: React.FC<Props> = ({ menu }) => {
     setAssetBoxes((prev) => prev.filter((box) => box.id !== id));
   };
 
-  // 카테고리 변경 시
+  // 카테고리 변경
   const handleCategoryChange = (id: number, option: AssetOption | null) => {
     setAssetBoxes((prev) =>
       prev.map((box) =>
@@ -188,13 +179,46 @@ const DataDisplay: React.FC<Props> = ({ menu }) => {
     );
   };
 
-  // 자산군 변경 시
+  // 자산군 변경
   const handleAssetNameChange = (id: number, option: AssetOption | null) => {
     setAssetBoxes((prev) =>
       prev.map((box) =>
         box.id === id ? { ...box, selectedAssetName: option } : box
       )
     );
+  };
+
+  // 비중 변경 (개별 박스)
+  const handleWeightChange = (id: number, val: string) => {
+    // 숫자 및 빈 문자열 허용, 0~100 제한
+    if (val === "") {
+      setAssetBoxes((prev) =>
+        prev.map((box) => (box.id === id ? { ...box, weight: val } : box))
+      );
+      return;
+    }
+    const num = Number(val);
+    if (num >= 0 && num <= 100) {
+      setAssetBoxes((prev) =>
+        prev.map((box) => (box.id === id ? { ...box, weight: val } : box))
+      );
+    }
+  };
+
+  // 초기화 버튼 클릭 시
+  const handleReset = () => {
+    setAssetBoxes([
+      { id: 0, selectedCategory: null, selectedAssetName: null, weight: "" },
+    ]);
+    setBoxIdCounter(1);
+    setReadyMessage(null);
+  };
+
+  // 준비중 버튼 클릭 시
+  const handleReadyClick = (btnName: string) => {
+    setReadyMessage(`${btnName} 준비중입니다.`);
+    // 2초 뒤 메시지 사라짐
+    setTimeout(() => setReadyMessage(null), 2000);
   };
 
   if (loading) return <p>로딩 중...</p>;
@@ -209,20 +233,19 @@ const DataDisplay: React.FC<Props> = ({ menu }) => {
       </h2>
 
       <div className="flex justify-between items-start">
-        {/* 왼쪽 컨텐츠: 자산군 리스트 등 */}
+        {/* 왼쪽 컨텐츠 */}
         <div className="flex-1 pr-6">
           <div className="text-start font-bold pb-3">
             <span className="pr-1 ">자산군 추가</span>
             <span className="text-green-400">[필수]</span>
           </div>
           {assetBoxes.map(
-            ({ id, selectedCategory, selectedAssetName }, index) => (
+            ({ id, selectedCategory, selectedAssetName, weight }, index) => (
               <div key={id} className="flex flex-col ">
                 <div className="text-start pb-[8px]">
                   자산 {String(index + 1).padStart(2, "0")}
                 </div>
 
-                {/* 카테고리 select */}
                 <div className="flex justify-between gap-4">
                   <div className="flex flex-col justify-start text-gray-500 text-sm flex-1">
                     <div className="w-full text-left font-semibold mb-1 pb-3">
@@ -243,7 +266,7 @@ const DataDisplay: React.FC<Props> = ({ menu }) => {
                       className="text-white text-xs"
                     />
                   </div>
-                  {/* 자산군 select */}
+
                   <div className="flex flex-col justify-start text-gray-500 text-sm flex-1">
                     <div className="w-full text-left font-semibold mb-1 pb-3">
                       자산군
@@ -266,7 +289,7 @@ const DataDisplay: React.FC<Props> = ({ menu }) => {
                       className="text-xs text-white text-bold"
                     />
                   </div>
-                  {/* 비중 input */}
+
                   <div className="flex flex-col justify-start text-gray-500 text-sm flex-1">
                     <div className="w-full text-left font-semibold mb-1 pb-3">
                       비중
@@ -279,8 +302,10 @@ const DataDisplay: React.FC<Props> = ({ menu }) => {
                           max="100"
                           step="1"
                           className="w-full border border-gray-300 rounded px-2 py-2 bg-black text-white text-sm text-center"
-                          value={value}
-                          onChange={handleChange}
+                          value={weight}
+                          onChange={(e) =>
+                            handleWeightChange(id, e.target.value)
+                          }
                         />
                         <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 pointer-events-none">
                           %
@@ -292,7 +317,7 @@ const DataDisplay: React.FC<Props> = ({ menu }) => {
                     </div>
                   </div>
                 </div>
-                {/* 삭제 버튼 */}
+
                 <div className="mr-3 text-end">
                   <button
                     onClick={() => handleRemoveBox(id)}
@@ -306,23 +331,46 @@ const DataDisplay: React.FC<Props> = ({ menu }) => {
             )
           )}
 
-          <button onClick={handleAddBox}>자산군 추가</button>
+          <button
+            onClick={handleAddBox}
+            className="mt-2 px-3 py-1 rounded border border-gray-500 text-sm"
+          >
+            자산군 추가
+          </button>
         </div>
 
-        {/* 오른쪽 버튼 4개 스티키 박스 */}
+        {/* 오른쪽 버튼 */}
         <div className="sticky top-20 flex flex-col gap-4 w-40">
-          <button className="px-4 py-2 bg-green-500 text-green-200 rounded hover:bg-green-600  font-bold transition">
+          <button
+            className="px-4 py-2 bg-green-500 text-green-200 rounded hover:bg-green-600 font-bold transition"
+            onClick={() => handleReadyClick("저장하기")}
+          >
             저장하기
           </button>
-          <button className="px-4 py-2 bg-white text-black rounded transition font-bold">
+          <button
+            className="px-4 py-2 bg-white text-black rounded transition font-bold"
+            onClick={() => handleReadyClick("백테스트")}
+          >
             백테스트
           </button>
-          <button className="px-4 py-2 bg-white text-black rounded transition font-bold">
+          <button
+            className="px-4 py-2 bg-white text-black rounded transition font-bold"
+            onClick={() => handleReadyClick("포트 추출")}
+          >
             포트 추출
           </button>
-          <button className="px-4 py-2 border-2 border-gray-500 rounded bg-black text-white font-bold text-xs">
+          <button
+            className="px-4 py-2 border-2 border-gray-500 rounded bg-black text-white font-bold text-xs"
+            onClick={handleReset}
+          >
             ⤺ 설정 값 초기화
           </button>
+          {/* 준비중 메시지 표시 */}
+          {readyMessage && (
+            <p className="mt-2 text-center text-red-500 font-semibold">
+              {readyMessage}
+            </p>
+          )}
         </div>
       </div>
     </>

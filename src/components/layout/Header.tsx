@@ -1,6 +1,6 @@
 export default function Header() {
   return (
-    <header className="fixed top-0 left-0 w-full z-50 h-[65px] flex justify-center items-center">
+    <header className="fixed top-0 left-0 w-full z-50 h-[65px] flex justify-center items-center bg-black">
       <div className="px-[10px] mx-auto flex justify-between items-center h-[42px] w-full">
         {/* 로고 */}
         <div className="flex">
