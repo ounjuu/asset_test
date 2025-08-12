@@ -23,7 +23,7 @@ export default function Footer() {
                 사업 제안/제휴 문의:{" "}
                 <a
                   href="mailto:info@quantus.kr"
-                  className="underline hover:text-gray-100"
+                  className="hover:text-gray-100"
                 >
                   info@quantus.kr
                 </a>{" "}
@@ -57,24 +57,42 @@ export default function Footer() {
         <div className="flex flex-col md:flex-row justify-between items-center mb-8 space-y-4 md:space-y-0 ">
           <div className="flex space-x-4">
             {/* 인스타그램 */}
-            <a href="#" className="hover:text-gray-100" aria-label="Instagram">
+            <a
+              href="https://www.instagram.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-gray-100"
+              aria-label="Instagram"
+            >
               <FaInstagram className="w-5 h-5" />
             </a>
 
             {/* 유튜브 */}
-            <a href="#" className="hover:text-gray-100" aria-label="YouTube">
+            <a
+              href="https://www.youtube.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-gray-100"
+              aria-label="YouTube"
+            >
               <FaYoutube className="w-5 h-5" />
             </a>
 
             {/* Threads */}
-            <a href="#" className="hover:text-gray-100" aria-label="Threads">
+            <a
+              href="https://www.threads.net"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-gray-100"
+              aria-label="Threads"
+            >
               <FaThreads className="w-5 h-5" />
             </a>
           </div>
         </div>
 
         {/* 저작권 및 약관 */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center text-xs border-t border-gray-700 pt-6 space-y-4 md:space-y-0">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center text-xs border-gray-700 pt-6 space-y-4 md:space-y-0">
           <div className="max-w-lg">
             <p>© 2023 Quantus Technologies. All rights reserved.</p>
             <p className="mt-2 text-gray-400">
@@ -83,11 +101,23 @@ export default function Footer() {
             </p>
           </div>
           <div className="flex space-x-6 text-xs text-gray">
-            <button className="hover:cursor-pointer">개인정보처리방침</button>
+            <button
+              onClick={() => alert("준비중입니다")}
+              className="hover:cursor-pointer"
+            >
+              개인정보처리방침
+            </button>
+
             <span className="inline-block px-5 py-2.5 text-base font-medium font-inherit duration-250">
               |
             </span>
-            <button className="hover:cursor-pointer">이용약관</button>
+
+            <button
+              onClick={() => alert("준비중입니다")}
+              className="hover:cursor-pointer"
+            >
+              이용약관
+            </button>
           </div>
         </div>
       </div>
