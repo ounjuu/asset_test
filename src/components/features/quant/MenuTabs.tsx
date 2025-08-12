@@ -10,7 +10,7 @@ const MenuTabs: React.FC<Props> = ({ selected, onSelect }) => {
   return (
     <div className="flex justify-start w-full gap-2 mb-4 text-xl font-extrabold">
       <button
-        className={`text-start py-2 rounded ${
+        className={`text-left py-2 rounded ${
           selected === "stock" ? "text-white" : "text-gray-500"
         }`}
         onClick={() => onSelect("stock")}
@@ -18,7 +18,7 @@ const MenuTabs: React.FC<Props> = ({ selected, onSelect }) => {
         주식퀀트
       </button>
       <button
-        className={`text-start py-2 rounded ${
+        className={`text-left py-2 rounded ${
           selected === "coin" ? "text-white" : "text-gray-500"
         }`}
         onClick={() => onSelect("coin")}

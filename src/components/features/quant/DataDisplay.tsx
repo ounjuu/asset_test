@@ -37,7 +37,7 @@ const customStyles = {
   }),
   placeholder: (provided: any) => ({
     ...provided,
-    color: "#9ca3af" /* tailwind gray-400 */,
+    color: "white" /* tailwind gray-400 */,
   }),
 };
 
@@ -64,6 +64,22 @@ const DataDisplay: React.FC<Props> = ({ menu }) => {
   const [data, setData] = useState<DataItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [value, setValue] = useState("0");
+
+  // input 숫자 제어
+  const handleChange = (e: any) => {
+    let val = e.target.value;
+    // 빈 문자열 허용 (입력 초기화)
+    if (val === "") {
+      setValue(val);
+      return;
+    }
+    // 숫자만 허용
+    val = Number(val);
+    if (val >= 0 && val <= 100) {
+      setValue(val);
+    }
+  };
 
   // 여러 자산군 박스 상태 (id별로 category, assetName 선택 관리)
   const [assetBoxes, setAssetBoxes] = useState<
@@ -192,54 +208,123 @@ const DataDisplay: React.FC<Props> = ({ menu }) => {
         자산배분
       </h2>
 
-      {assetBoxes.map(({ id, selectedCategory, selectedAssetName }) => (
-        <div key={id} className="flex col">
-          {/* 카테고리 select */}
-          <div className="flex gap-3">
-            <Select
-              options={categoryOptions}
-              value={selectedCategory}
-              onChange={(option) => handleCategoryChange(id, option)}
-              components={{ MenuList }}
-              styles={customStyles}
-              menuPortalTarget={
-                typeof window !== "undefined" ? document.body : null
-              }
-              menuPosition="fixed"
-              placeholder="카테고리 선택"
-              isClearable
-              className="w-48"
-            />
-
-            {/* 자산군 select */}
-            <Select
-              options={getAssetNameOptions(selectedCategory?.value || null)}
-              value={selectedAssetName}
-              onChange={(option) => handleAssetNameChange(id, option)}
-              components={{ MenuList }}
-              styles={customStyles}
-              menuPortalTarget={
-                typeof window !== "undefined" ? document.body : null
-              }
-              menuPosition="fixed"
-              placeholder="자산군을 선택해주세요."
-              isClearable
-              isDisabled={!selectedCategory}
-              className="w-65"
-            />
+      <div className="flex justify-between items-start">
+        {/* 왼쪽 컨텐츠: 자산군 리스트 등 */}
+        <div className="flex-1 pr-6">
+          <div className="text-start font-bold pb-3">
+            <span className="pr-1 ">자산군 추가</span>
+            <span className="text-green-400">[필수]</span>
           </div>
-          {/* 삭제 버튼 */}
-          <button
-            onClick={() => handleRemoveBox(id)}
-            style={{ padding: "4px 8px" }}
-            aria-label="삭제"
-          >
-            삭제
+          {assetBoxes.map(
+            ({ id, selectedCategory, selectedAssetName }, index) => (
+              <div key={id} className="flex flex-col ">
+                <div className="text-start pb-[8px]">
+                  자산 {String(index + 1).padStart(2, "0")}
+                </div>
+
+                {/* 카테고리 select */}
+                <div className="flex justify-between gap-4">
+                  <div className="flex flex-col justify-start text-gray-500 text-sm flex-1">
+                    <div className="w-full text-left font-semibold mb-1 pb-3">
+                      종류
+                    </div>
+                    <Select
+                      options={categoryOptions}
+                      value={selectedCategory}
+                      onChange={(option) => handleCategoryChange(id, option)}
+                      components={{ MenuList }}
+                      styles={customStyles}
+                      menuPortalTarget={
+                        typeof window !== "undefined" ? document.body : null
+                      }
+                      menuPosition="fixed"
+                      placeholder="카테고리 선택"
+                      isClearable
+                      className="text-white text-xs"
+                    />
+                  </div>
+                  {/* 자산군 select */}
+                  <div className="flex flex-col justify-start text-gray-500 text-sm flex-1">
+                    <div className="w-full text-left font-semibold mb-1 pb-3">
+                      자산군
+                    </div>
+                    <Select
+                      options={getAssetNameOptions(
+                        selectedCategory?.value || null
+                      )}
+                      value={selectedAssetName}
+                      onChange={(option) => handleAssetNameChange(id, option)}
+                      components={{ MenuList }}
+                      styles={customStyles}
+                      menuPortalTarget={
+                        typeof window !== "undefined" ? document.body : null
+                      }
+                      menuPosition="fixed"
+                      placeholder="자산군을 선택해주세요."
+                      isClearable
+                      isDisabled={!selectedCategory}
+                      className="text-xs text-white text-bold"
+                    />
+                  </div>
+                  {/* 비중 input */}
+                  <div className="flex flex-col justify-start text-gray-500 text-sm flex-1">
+                    <div className="w-full text-left font-semibold mb-1 pb-3">
+                      비중
+                    </div>
+                    <div>
+                      <div className="relative inline-block w-full">
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          step="1"
+                          className="w-full border border-gray-300 rounded px-2 py-2 bg-black text-white text-sm text-center"
+                          value={value}
+                          onChange={handleChange}
+                        />
+                        <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 pointer-events-none">
+                          %
+                        </span>
+                      </div>
+                      <div className="text-xs text-gray-500 pt-2">
+                        0 ~ 100까지 입력할 수 있습니다.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {/* 삭제 버튼 */}
+                <div className="mr-3 text-end">
+                  <button
+                    onClick={() => handleRemoveBox(id)}
+                    aria-label="삭제"
+                    className="text-red-600 text-sm"
+                  >
+                    삭제
+                  </button>
+                </div>
+              </div>
+            )
+          )}
+
+          <button onClick={handleAddBox}>자산군 추가</button>
+        </div>
+
+        {/* 오른쪽 버튼 4개 스티키 박스 */}
+        <div className="sticky top-20 flex flex-col gap-4 w-40">
+          <button className="px-4 py-2 bg-green-500 text-green-200 rounded hover:bg-green-600  font-bold transition">
+            저장하기
+          </button>
+          <button className="px-4 py-2 bg-white text-black rounded transition font-bold">
+            백테스트
+          </button>
+          <button className="px-4 py-2 bg-white text-black rounded transition font-bold">
+            포트 추출
+          </button>
+          <button className="px-4 py-2 border-2 border-gray-500 rounded bg-black text-white font-bold text-xs">
+            ⤺ 설정 값 초기화
           </button>
         </div>
-      ))}
-
-      <button onClick={handleAddBox}>자산군 추가</button>
+      </div>
     </>
   );
 };
