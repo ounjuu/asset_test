@@ -1,6 +1,7 @@
 import "./App.css";
 import Header from "./components/layout/Header";
 import Footer from "./components/layout/Footer";
+import MainPage from "./components/features/quant/MainPage";
 
 export default function App() {
   return (
@@ -9,10 +10,8 @@ export default function App() {
       <Header />
 
       {/* 메인 콘텐츠 */}
-      <main className="flex-1 w-full max-w-6xl mx-auto px-4 pt-[65px] py-8">
-        {/* 여기에 페이지 내용 */}
-        <h1 className="text-2xl font-bold mb-4">메인 페이지</h1>
-        <p className="text-gray-700">메인</p>
+      <main className="flex-1 max-w-6xl pt-[65px] py-8 px-[12px]">
+        <MainPage />
       </main>
 
       {/* 하단 고정 푸터 */}
